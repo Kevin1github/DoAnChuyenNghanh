@@ -1,0 +1,176 @@
+<div class="container mt-4">
+  <h2>Bill Management</h2>
+
+  <!-- Alerts -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
+    {{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+  </div>
+
+  <!-- Auto-generate Bill Section -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Auto-generate Bills for All Users</h5>
+      <form [formGroup]="autoBillForm" (ngSubmit)="generateBillsForAllUsers()" class="row g-3">
+        <div class="col-md-4">
+          <label for="autoDescription" class="form-label">Description</label>
+          <input type="text" class="form-control" id="autoDescription" formControlName="description">
+          <div *ngIf="autoBillForm.get('description')?.invalid && autoBillForm.get('description')?.touched" class="text-danger">
+            Description is required
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label for="autoAmount" class="form-label">Amount ($)</label>
+          <input type="number" step="0.01" class="form-control" id="autoAmount" formControlName="amount">
+          <div *ngIf="autoBillForm.get('amount')?.invalid && autoBillForm.get('amount')?.touched" class="text-danger">
+            Valid amount is required
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label for="autoDueDate" class="form-label">Due Date</label>
+          <input type="date" class="form-control" id="autoDueDate" formControlName="dueDate">
+          <div *ngIf="autoBillForm.get('dueDate')?.invalid && autoBillForm.get('dueDate')?.touched" class="text-danger">
+            Due date is required
+          </div>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-warning me-2" [disabled]="autoBillForm.invalid || autoGenerating">
+            <i class="bi bi-lightning-charge-fill me-1"></i> Generate Bills For All Users
+          </button>
+          <span *ngIf="autoGenerating" class="ms-2">
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Processing...
+          </span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Bill Form -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">{{ editMode ? 'Edit Bill' : 'Create New Bill' }}</h5>
+      <form [formGroup]="billForm" (ngSubmit)="onSubmit()" class="row g-3">
+        <div class="col-md-4">
+          <label for="user" class="form-label">User</label>
+          <select class="form-select" id="user" formControlName="user">
+            <option value="">Choose user...</option>
+            <option *ngFor="let user of users" [value]="user._id">{{ user.username || user.name }}</option>
+          </select>
+          <div *ngIf="billForm.get('user')?.invalid && billForm.get('user')?.touched" class="text-danger">
+            User is required
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label for="description" class="form-label">Description</label>
+          <input type="text" class="form-control" id="description" formControlName="description">
+          <div *ngIf="billForm.get('description')?.invalid && billForm.get('description')?.touched" class="text-danger">
+            Description is required
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label for="amount" class="form-label">Amount ($)</label>
+          <input type="number" step="0.01" class="form-control" id="amount" formControlName="amount">
+          <div *ngIf="billForm.get('amount')?.invalid && billForm.get('amount')?.touched" class="text-danger">
+            Valid amount is required
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label for="dueDate" class="form-label">Due Date</label>
+          <input type="date" class="form-control" id="dueDate" formControlName="dueDate">
+          <div *ngIf="billForm.get('dueDate')?.invalid && billForm.get('dueDate')?.touched" class="text-danger">
+            Due date is required
+          </div>
+        </div>
+        <div class="col-md-4" *ngIf="editMode">
+          <label for="status" class="form-label">Status</label>
+          <select class="form-select" id="status" formControlName="status">
+            <option value="Pending">Pending</option>
+            <option value="Paid">Paid</option>
+            <option value="Overdue">Overdue</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-success me-2" [disabled]="billForm.invalid || loading">
+            {{ editMode ? 'Update' : 'Create' }} Bill
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="resetForm()" [disabled]="loading">Cancel</button>
+          <span *ngIf="loading" class="ms-2">
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Processing...
+          </span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Bills List -->
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">All Bills</h5>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Bill ID</th>
+              <th>User</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="loading && bills.length === 0">
+              <td colspan="7" class="text-center">
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                Loading bills...
+              </td>
+            </tr>
+            <tr *ngIf="!loading && bills.length === 0">
+              <td colspan="7" class="text-center">No bills found</td>
+            </tr>
+            <tr *ngFor="let bill of bills">
+              <td>{{ bill._id }}</td>
+              <td>{{ bill.user.username || bill.user.name || 'Unknown User' }}</td>
+              <td>{{ bill.description }}</td>
+              <td>${{ bill.amount.toFixed(2) }}</td>
+              <td>{{ bill.dueDate | date:'yyyy-MM-dd' }}</td>
+              <td>
+                <span [ngClass]="{
+                  'badge bg-warning': bill.status === 'Pending',
+                  'badge bg-success': bill.status === 'Paid',
+                  'badge bg-danger': bill.status === 'Overdue',
+                  'badge bg-secondary': bill.status === 'Cancelled'
+                }">{{ bill.status }}</span>
+              </td>
+              <td>
+                <div class="btn-group">
+                  <button class="btn btn-primary btn-sm me-1" (click)="editBill(bill)">Edit</button>
+                  <button class="btn btn-danger btn-sm me-1" (click)="deleteBill(bill._id)">Delete</button>
+                  <div class="dropdown d-inline">
+                    <button class="btn btn-info btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                      Status
+                    </button>
+                    <ul class="dropdown-menu">
+                      <li><a class="dropdown-item" (click)="updateStatus(bill._id, 'Pending')">Pending</a></li>
+                      <li><a class="dropdown-item" (click)="updateStatus(bill._id, 'Paid')">Paid</a></li>
+                      <li><a class="dropdown-item" (click)="updateStatus(bill._id, 'Overdue')">Overdue</a></li>
+                      <li><a class="dropdown-item" (click)="updateStatus(bill._id, 'Cancelled')">Cancelled</a></li>
+                    </ul>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

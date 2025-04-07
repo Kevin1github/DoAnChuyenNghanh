@@ -1,0 +1,83 @@
+<div class="container mt-4">
+  <h2>Personal Profile</h2>
+  <div class="card">
+    <div class="card-body">
+      <div *ngIf="isLoading" class="text-center">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+
+      <form *ngIf="!isLoading" [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+        <div class="row">
+          <div class="col-md-3 text-center">
+            <img 
+              [src]="getAvatarUrl()" 
+              alt="User Avatar" 
+              class="img-fluid rounded-circle mb-3" 
+              style="max-width: 150px; max-height: 150px; object-fit: cover;"
+              (error)="onAvatarError($event)"
+            >
+            
+            <div class="mb-3">
+              <label for="avatar" class="form-label">Upload Avatar</label>
+              <input 
+                type="file" 
+                class="form-control" 
+                id="avatar" 
+                accept="image/*" 
+                (change)="onFileSelected($event)"
+              >
+            </div>
+            
+            <button 
+              type="button" 
+              class="btn btn-outline-primary btn-sm mb-3" 
+              [disabled]="!selectedFile || isUploadingAvatar" 
+              (click)="uploadAvatar()"
+            >
+              <span *ngIf="isUploadingAvatar" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              Upload Avatar
+            </button>
+          </div>
+          
+          <div class="col-md-9">
+            <div class="mb-3">
+              <label for="username" class="form-label">Username</label>
+              <input type="text" class="form-control" id="username" formControlName="username">
+            </div>
+            
+            <div class="mb-3">
+              <label for="fullName" class="form-label">Full Name</label>
+              <input type="text" class="form-control" id="fullName" formControlName="fullName">
+            </div>
+            
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input type="email" class="form-control" id="email" formControlName="email">
+              <div *ngIf="profileForm.get('email')?.invalid && (profileForm.get('email')?.dirty || profileForm.get('email')?.touched)" class="text-danger">
+                <div *ngIf="profileForm.get('email')?.errors?.['required']">Email is required.</div>
+                <div *ngIf="profileForm.get('email')?.errors?.['email']">Please enter a valid email.</div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="phone" class="form-label">Phone</label>
+              <input type="text" class="form-control" id="phone" formControlName="phone">
+            </div>
+            
+            <div class="mb-3">
+              <label for="address" class="form-label">Address</label>
+              <textarea class="form-control" id="address" rows="3" formControlName="address"></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" [disabled]="profileForm.invalid || isSaving">
+              <span *ngIf="isSaving" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              Update Profile
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div> 

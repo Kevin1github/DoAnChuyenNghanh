@@ -1,0 +1,118 @@
+<div class="container mt-4">
+  <h2>Account Management</h2>
+
+  <!-- Alert Messages -->
+  @if (errorMessage) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      {{errorMessage}}
+      <button type="button" class="btn-close" (click)="clearMessages()"></button>
+    </div>
+  }
+
+  @if (successMessage) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{successMessage}}
+      <button type="button" class="btn-close" (click)="clearMessages()"></button>
+    </div>
+  }
+
+  <!-- User Form -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">{{isEditing ? 'Edit User' : 'Add New User'}}</h5>
+      <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="row g-3">
+        <div class="col-md-4">
+          <label for="username" class="form-label">Username</label>
+          <input type="text" class="form-control" id="username" formControlName="username">
+          @if (userForm.get('username')?.invalid && userForm.get('username')?.touched) {
+            <div class="text-danger">
+              Username is required (min 3 characters)
+            </div>
+          }
+        </div>
+        <div class="col-md-4">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" class="form-control" id="email" formControlName="email">
+          @if (userForm.get('email')?.invalid && userForm.get('email')?.touched) {
+            <div class="text-danger">
+              Valid email is required
+            </div>
+          }
+        </div>
+        <div class="col-md-4">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" class="form-control" id="password" formControlName="password">
+          @if (userForm.get('password')?.invalid && userForm.get('password')?.touched) {
+            <div class="text-danger">
+              Password is required (min 6 characters)
+            </div>
+          }
+          @if (isEditing) {
+            <small class="text-muted">Leave blank to keep current password</small>
+          }
+        </div>
+        <div class="col-md-4">
+          <label for="role" class="form-label">Role</label>
+          <select class="form-select" id="role" formControlName="role">
+            <option value="admin">Admin</option>
+            <option value="user">User</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label for="status" class="form-label">Status</label>
+          <select class="form-select" id="status" formControlName="status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-success me-2" [disabled]="userForm.invalid">
+            {{isEditing ? 'Update User' : 'Add User'}}
+          </button>
+          @if (isEditing) {
+            <button type="button" class="btn btn-secondary" (click)="resetForm()">Cancel</button>
+          }
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- User Table -->
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">User Accounts</h5>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of users; track user._id) {
+              <tr>
+                <td>{{user.username}}</td>
+                <td>{{user.email}}</td>
+                <td>{{user.role | titlecase}}</td>
+                <td>{{user.status | titlecase}}</td>
+                <td>
+                  <button class="btn btn-primary btn-sm me-2" (click)="editUser(user)">Edit</button>
+                  <button class="btn btn-danger btn-sm" (click)="deleteUser(user._id)">Delete</button>
+                </td>
+              </tr>
+            }
+            @empty {
+              <tr>
+                <td colspan="5" class="text-center">No users found</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

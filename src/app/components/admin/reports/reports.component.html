@@ -1,0 +1,82 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Reports and Statistics</h2>
+    <div class="btn-group">
+      <button class="btn btn-primary" (click)="exportReports('json')">Export JSON</button>
+      <button class="btn btn-success" (click)="exportReports('csv')">Export CSV</button>
+    </div>
+  </div>
+  
+  <div *ngIf="loading" class="text-center">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+  
+  <div *ngIf="!loading" class="row">
+    <div class="col-md-4 mb-4">
+      <div class="card text-white bg-primary">
+        <div class="card-body">
+          <h5 class="card-title">Total Users</h5>
+          <p class="card-text display-4">{{ dashboardData.totalUsers }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="card text-white bg-success">
+        <div class="card-body">
+          <h5 class="card-title">Total Bills</h5>
+          <p class="card-text display-4">{{ dashboardData.totalBills }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="card text-white bg-info">
+        <div class="card-body">
+          <h5 class="card-title">Total Revenue</h5>
+          <p class="card-text display-4">${{ dashboardData.totalRevenue.toFixed(2) }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Monthly Revenue</h5>
+      <div class="chart-container" style="height: 300px;">
+        <canvas #revenueChart></canvas>
+      </div>
+    </div>
+  </div>
+  
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Recent Payments</h5>
+      <div *ngIf="recentPayments.length === 0" class="alert alert-info">
+        No recent payments found.
+      </div>
+      <div *ngIf="recentPayments.length > 0" class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Payment ID</th>
+              <th>User</th>
+              <th>Bill Type</th>
+              <th>Amount</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let payment of recentPayments">
+              <td>{{ payment.paymentId }}</td>
+              <td>{{ payment.user }}</td>
+              <td>{{ payment.billType }}</td>
+              <td>${{ payment.amount.toFixed(2) }}</td>
+              <td>{{ payment.date | date:'yyyy-MM-dd' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div> 

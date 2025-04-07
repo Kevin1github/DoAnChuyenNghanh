@@ -1,0 +1,23 @@
+.card {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.chart-container {
+  position: relative;
+  margin: auto;
+  height: 300px;
+  width: 100%;
+}
+
+.bg-primary {
+  background-color: #007bff !important;
+}
+
+.bg-success {
+  background-color: #28a745 !important;
+}
+
+.bg-info {
+  background-color: #17a2b8 !important;
+} 

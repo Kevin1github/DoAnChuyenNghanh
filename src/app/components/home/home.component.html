@@ -1,0 +1,36 @@
+<div class="container mt-4">
+  <div class="jumbotron bg-light p-5 rounded">
+    <h1 class="display-4">Account & Bill Management System</h1>
+    <p class="lead">Welcome to our secure platform for managing your accounts and bills.</p>
+    <hr class="my-4">
+    <p>Login to access personalized features and manage your payments efficiently.</p>
+    <a class="btn btn-primary btn-lg" routerLink="/login" *ngIf="!isLoggedIn()">Login</a>
+  </div>
+
+  <div class="row mt-5">
+    <div class="col-md-4 mb-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Easy Bill Payment</h5>
+          <p class="card-text">Pay your bills with just a few clicks. Our system offers secure and fast payment processing.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Account Management</h5>
+          <p class="card-text">Manage your personal information and keep your profile updated for better service.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Secure Platform</h5>
+          <p class="card-text">Rest assured that your information is safe with our state-of-the-art security measures.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

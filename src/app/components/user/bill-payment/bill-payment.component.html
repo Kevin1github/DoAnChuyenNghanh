@@ -1,0 +1,174 @@
+<div class="container mt-4">
+  <h2>Bill Payment</h2>
+
+  <!-- Alerts -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
+    {{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+  </div>
+
+  <!-- User Bills -->
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Your Bills</h5>
+      <p class="card-text">Here you can view and pay your pending bills.</p>
+      
+      <!-- Loading indicator -->
+      <div *ngIf="loading" class="text-center my-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading your bills...</p>
+      </div>
+      
+      <!-- No bills message -->
+      <div *ngIf="!loading && bills.length === 0" class="alert alert-info">
+        You don't have any bills at the moment.
+      </div>
+      
+      <!-- Bills table -->
+      <div *ngIf="!loading && bills.length > 0" class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Bill ID</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let bill of bills">
+              <td>{{ bill._id }}</td>
+              <td>{{ bill.description }}</td>
+              <td>${{ bill.amount.toFixed(2) }}</td>
+              <td>{{ bill.dueDate | date:'mediumDate' }}</td>
+              <td>
+                <span [ngClass]="{
+                  'badge bg-warning': bill.status === 'Pending',
+                  'badge bg-success': bill.status === 'Paid',
+                  'badge bg-danger': bill.status === 'Overdue',
+                  'badge bg-secondary': bill.status === 'Cancelled'
+                }">{{ bill.status }}</span>
+              </td>
+              <td>
+                <button *ngIf="bill.status === 'Pending'" (click)="openPaymentModal(bill._id)" class="btn btn-primary btn-sm">Pay Now</button>
+                <button *ngIf="bill.status === 'Paid'" (click)="viewReceipt(bill)" class="btn btn-info btn-sm">View Receipt</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div *ngIf="payingBillId" class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Payment Details</h5>
+        <button type="button" class="btn-close" (click)="closePaymentModal()"></button>
+      </div>
+      <div class="modal-body">
+        <p>You are about to pay bill #{{ payingBillId }}</p>
+        <p><strong>Amount: ${{ getBillAmount(payingBillId).toFixed(2) }}</strong></p>
+        
+        <div class="form-group mb-3">
+          <label for="paymentMethod" class="form-label">Payment Method</label>
+          <select id="paymentMethod" [(ngModel)]="selectedPaymentMethod" class="form-select">
+            <option *ngFor="let method of paymentMethods" [value]="method">{{ method }}</option>
+          </select>
+        </div>
+        
+        <div *ngIf="selectedPaymentMethod === 'Credit Card' || selectedPaymentMethod === 'Debit Card'" class="mb-3">
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="cardNumber" placeholder="Card Number">
+            <label for="cardNumber">Card Number</label>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="expDate" placeholder="MM/YY">
+                <label for="expDate">Expiration Date (MM/YY)</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="cvv" placeholder="CVV">
+                <label for="cvv">CVV</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div *ngIf="errorMessage" class="alert alert-danger">
+          {{ errorMessage }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closePaymentModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="payBill()" [disabled]="paymentInProgress">
+          <span *ngIf="paymentInProgress" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          Confirm Payment
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Receipt Modal -->
+<div *ngIf="showReceipt" class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Payment Receipt</h5>
+        <button type="button" class="btn-close" (click)="closeReceipt()"></button>
+      </div>
+      <div class="modal-body" id="receipt-content">
+        <div class="text-center mb-4">
+          <h4>PAYMENT RECEIPT</h4>
+          <p class="text-muted">Account Management System</p>
+        </div>
+        
+        <div class="row mb-2">
+          <div class="col-5 fw-bold">Receipt Number:</div>
+          <div class="col-7">{{ currentReceipt?.receiptNumber }}</div>
+        </div>
+        <div class="row mb-2">
+          <div class="col-5 fw-bold">Bill ID:</div>
+          <div class="col-7">{{ currentReceipt?.billId }}</div>
+        </div>
+        <div class="row mb-2">
+          <div class="col-5 fw-bold">Payment Date:</div>
+          <div class="col-7">{{ formatDate(currentReceipt?.paymentDate) }}</div>
+        </div>
+        <div class="row mb-2">
+          <div class="col-5 fw-bold">Payment Method:</div>
+          <div class="col-7">{{ currentReceipt?.paymentMethod }}</div>
+        </div>
+        <div class="row mb-2">
+          <div class="col-5 fw-bold">Amount Paid:</div>
+          <div class="col-7">${{ currentReceipt?.amount?.toFixed(2) }}</div>
+        </div>
+        
+        <div class="text-center mt-4">
+          <p>Thank you for your payment!</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeReceipt()">Close</button>
+        <button type="button" class="btn btn-primary" (click)="printReceipt()">
+          <i class="bi bi-printer"></i> Print Receipt
+        </button>
+      </div>
+    </div>
+  </div>
+</div> 
